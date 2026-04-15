@@ -21,11 +21,11 @@
 
 | Repository | Best for | Protocol | Free tier |
 |---|---|---|---|
-| Sylabs Cloud Library | Singularity/Apptainer-native storage | `library://` | Yes (11 GB) |
-| Docker Hub | Wide compatibility, OCI images | `docker://` | Yes (public repos) |
-| GitHub Container Registry | CI/CD integration with GitHub | `oras://` / `docker://` | Yes (public repos) |
-| Quay.io | Red Hat / bioinformatics community | `docker://` | Yes (public repos) |
-| BioContainers | Bioinformatics-specific, auto-built | PR to bioconda | Yes (community) |
+| [Sylabs Cloud Library](#sylabs-cloud-library-library) | Singularity/Apptainer-native storage | `library://` | Yes (11 GB) |
+| [Docker Hub](#docker-hub-via-oci-push) | Wide compatibility, OCI images | `docker://` | Yes (public repos) |
+| [GitHub Container Registry](#github-container-registry-ghcrio) | CI/CD integration with GitHub | `oras://` / `docker://` | Yes (public repos) |
+| [Quay.io](#quayio) | Red Hat / bioinformatics community | `docker://` | Yes (public repos) |
+| [BioContainers](#biocontainers--bioconductor) | Bioinformatics-specific, auto-built | PR to bioconda | Yes (community) |
 
 ---
 
