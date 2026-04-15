@@ -16,6 +16,7 @@
 8. [Execute an Arbitrary Command](#execute-an-arbitrary-command)
 9. [Interactive Shell](#interactive-shell)
 10. [Troubleshooting Common Build Errors](#troubleshooting-common-build-errors)
+11. [Important Apptainer Containers Related Documentation](#important-apptainer-containers-related-documentation)
 
 ---
 
@@ -44,11 +45,19 @@ project/
 ```
 
 ```bash
-mkdir -p ~/apptainer_builds/my_tool
-cd ~/apptainer_builds/my_tool
+mkdir -p ~/<path-to-apptainer-builds>/my_tool
+cd ~/<path-to-apptainer-builds>/my_tool
+```
+set up the definition file:
+```bash
+# Optional: Download template from gitHub:
+wget https://raw.githubusercontent.com/kibet-gilbert/apptainer_images/refs/heads/main/package_apptainer.def .
 
 # Copy or download your files here
-cp /path/to/package_apptainer.def .
+cp /<path-to>/package_apptainer.def .
+```
+Set up the environment file:
+```
 cp /path/to/conda.yml .
 ```
 
@@ -89,10 +98,14 @@ head -30 conda.yml
 
 ## Build the Image
 
-### Standard build (with sudo)
+### Standard build (with and without sudo)
 
 ```bash
+# with sudo
 sudo apptainer build my_tool.sif package_apptainer.def
+
+# without sudo
+apptainer build my_tool.sif package_apptainer.def
 ```
 
 ### Build with fakeroot (HPC — no sudo)
@@ -103,6 +116,7 @@ apptainer build --fakeroot my_tool.sif package_apptainer.def
 
 ### Build with a writable sandbox (useful for iterative development)
 
+Not necessary for images but a viable option for actively developing/testing images:
 ```bash
 # Build a writable directory instead of a .sif
 sudo apptainer build --sandbox my_tool_sandbox/ package_apptainer.def
@@ -257,3 +271,12 @@ apptainer inspect --runscript my_tool.sif
 | `No space left on device` during build | `/tmp` or working directory is full | Set `APPTAINER_TMPDIR` to a larger partition: `export APPTAINER_TMPDIR=/scratch/tmp` |
 | `fakeroot: command not found` | fakeroot not configured by sysadmin | Ask your HPC administrator to enable fakeroot for your account |
 | Build hangs on conda solve | Conflicting package versions | Simplify `conda.yml`; pin fewer versions; use `mamba` solver hints |
+
+
+## Important Apptainer Containers Related Documentation
+
+1. [Apptainer Definition File](./DEF_FILE_GUIDE.md)
+2. [Depositing Images in Public Repositories](./DEPOSITING_IMAGES.md)
+3. [Using Apptainer Images in Nextflow](./NEXTFLOW_USAGE.md)
+
+
