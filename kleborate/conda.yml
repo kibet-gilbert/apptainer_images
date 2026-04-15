@@ -1,0 +1,12 @@
+channels:
+- conda-forge
+- bioconda
+dependencies:
+- bioconda::ectyper=2.0.0
+- bioconda::ezclermont=0.7.0
+- bioconda::kaptive=3.1.0
+- bioconda::kleborate=3.2.4
+- bioconda::mash=2.3
+- bioconda::minimap2=2.30
+- bioconda::ncbi-amrfinderplus=4.0.23
+- bioconda::stxtyper=1.0.25

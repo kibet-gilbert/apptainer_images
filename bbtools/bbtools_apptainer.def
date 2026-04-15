@@ -1,0 +1,43 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%labels
+    Author "Gilbert Kibet"
+    Name "BBTools"
+    Version "39.34"
+
+%post
+    # Update and install dependencies
+    apt-get update && apt-get upgrade -y
+    apt-get install -y wget openjdk-11-jre-headless tar
+
+    # Download and install BBTools
+    mkdir -p /opt
+    wget -O /opt/BBMap_39.34.tar.gz https://downloads.sourceforge.net/project/bbmap/BBMap_39.34.tar.gz
+    tar -xvzf /opt/BBMap_39.34.tar.gz -C /opt/
+    rm /opt/BBMap_39.34.tar.gz
+
+%environment
+    export PATH=/opt/bbmap:$PATH
+
+%runscript
+    exec "$@"
+%help
+    Apptainer container for BBTools is an excellent suite of programs created by Brian Bushnell
+    Apps available:
+    bbduk.sh	BBDuk: Adapter-trimming, Contaminant/phix filtering, Quality-trimming, Quality recalibration +
+    bbmap.sh	BBMap: Human/Host contaminant removal, Quality recalibration +
+    bbmask.sh	BBMask: masking sequence to prevent false-positive matches in highly-conserved or low-complexity regions of genomes
+    bbmerge.sh	BBMerge: Paired-read merging
+    bbnorm.sh	BBNorm: Normalization, Error correction
+    bbcountunique.sh	CalcUniqueness: plot the fraction of unique reads produced by a sequencing run,
+    clumpify.sh	Clumpify: rapidly group overlapping reads into clumps.
+    dedupe.sh	Dedupe: Deduplication to eliminate duplicate contigs in assemblies, sequences
+    reformat.sh	Reformat: low memory format conversion, subsampling, filtering
+    repair.sh	Repair: fix files of paired reads that became disordered
+    seal.sh	Seal: “Sequence Expression AnaLyzer”. Seal is BBDuk’s sibling
+    splitnextera.sh SplitNexteraLMP: Nextera LMP(long-mate-pair) library splitting
+    statistics.sh    Statistics: generate assembly statistics - scaffold count, N50, L50, GC content, gap percent, etc.
+    tadpole.sh	Tadpole: fast kmer-based assembler, with additional capabilities of error-correcting and extending reads.
+    taxonomy.sh	Taxonomy: processing NCBI taxonomy information
+    khist.sh	BBNorm: Kmer depth distribution

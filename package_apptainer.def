@@ -1,0 +1,166 @@
+# =============================================================================
+# Apptainer Definition File Template
+# Tool:    <TOOL_NAME> v<TOOL_VERSION>
+# Author:  <YOUR_NAME>
+# Email:   <YOUR_EMAIL>
+# Date:    <YYYY-MM-DD>
+# =============================================================================
+
+BootStrap: docker
+From: mambaorg/micromamba:1.5.10-noble
+
+# -----------------------------------------------------------------------------
+# %files – Copy host files into the container at build time.
+#   Left-hand side  : path on the HOST (relative to build context or absolute)
+#   Right-hand side : path INSIDE the container (must exist or be /scratch/*)
+# Notes:
+#   • /scratch/ is a convenient staging area that can be cleaned up in %post.
+#   • Only include files that are needed during the build (e.g. conda env,
+#     tarballs, patch files). Runtime data should be bind-mounted instead.
+# -----------------------------------------------------------------------------
+%files
+    conda.yml /scratch/conda.yml
+    # <optional_tarball_or_patch> /scratch/<optional_tarball_or_patch>
+
+# -----------------------------------------------------------------------------
+# %post – Commands run inside the container after the base image is pulled.
+#   This is where you install software, configure the environment, and do any
+#   build-time setup.  The section runs as root.
+# -----------------------------------------------------------------------------
+%post
+    # --- 1. Initialise micromamba shell and install system-level dependencies -
+    micromamba shell init -s bash -p /opt/conda
+    micromamba install -y -n base \
+        conda-forge::procps-ng \
+        conda-forge::libiconv=1.17 \
+        conda-forge::libidn2=2.3.2
+
+    # --- 2. Install conda packages from the environment file ------------------
+    micromamba install -y -n base -f /scratch/conda.yml
+
+    # --- 3. Export a reproducible lock file (useful for provenance) -----------
+    micromamba env export -n base --explicit > /environment.lock
+    echo ">> CONDA_LOCK_START"
+    cat /environment.lock
+    echo "<< CONDA_LOCK_END"
+
+    # --- 4. Clean up conda package cache to reduce image size ----------------
+    micromamba clean -a -y
+
+    # --- 5. Ensure conda binaries are on PATH during build -------------------
+    export PATH="$MAMBA_ROOT_PREFIX/bin:/opt/conda/bin:$PATH"
+
+    # --- 6. Install / set up the main tool -----------------------------------
+    # Option A – Clone from GitHub:
+    # git clone https://github.com/<ORG>/<REPO>.git /opt/<TOOL_NAME>
+    # chmod +x /opt/<TOOL_NAME>/*.sh
+
+    # Option B – Install from tarball copied in %files:
+    # tar -xzf /scratch/<TOOL_TARBALL> -C /opt/
+    # chmod +x /opt/<TOOL_NAME>/<BINARY>
+
+    # Option C – pip install (if not in conda.yml):
+    # /opt/conda/bin/pip install <PACKAGE>==<VERSION>
+
+    # Option D – Build from source:
+    # cd /scratch && git clone https://github.com/<ORG>/<REPO>.git
+    # cd <REPO> && make && make install PREFIX=/opt/conda
+
+    # --- 7. Install any additional language-specific packages ----------------
+    # R packages (from CRAN / Bioconductor / local tarball):
+    # Rscript -e "install.packages('<PKG>', repos='https://cloud.r-project.org')"
+    # R CMD INSTALL /scratch/<PKG>.tar.gz
+
+    # Python packages (not in conda):
+    # /opt/conda/bin/pip install <PKG>==<VERSION>
+
+    # --- 8. Create symlinks / helper directories as needed -------------------
+    # mkdir -p /opt/<TOOL_NAME>/tools
+    # ln -s /opt/conda/bin/<BINARY> /opt/<TOOL_NAME>/tools/<BINARY>
+
+# -----------------------------------------------------------------------------
+# %environment – Shell variables exported every time the container runs.
+#   Keep this section minimal; prefer setting variables in %post where only
+#   needed during the build.
+# -----------------------------------------------------------------------------
+%environment
+    export PATH="$MAMBA_ROOT_PREFIX/bin:/opt/conda/bin:$PATH"
+    # export PATH="/opt/<TOOL_NAME>:$PATH"
+    export CONDA_PREFIX="/opt/conda"
+    # Java memory tuning (adjust if the tool uses the JVM):
+    export _JAVA_OPTIONS="-XX:CompressedClassSpaceSize=256m -XX:MaxMetaspaceSize=512m -Xss1m"
+    # Add any other tool-specific environment variables below:
+    # export TOOL_DB="/data/db"
+
+# -----------------------------------------------------------------------------
+# %test – Commands run by `apptainer test <image.sif>`.
+#   Use 'command -v' / 'which' to verify binaries exist and exit non-zero if
+#   they are missing.  Add functional smoke-tests where practical.
+# -----------------------------------------------------------------------------
+%test
+    echo "=== Verifying tool availability ==="
+    # Verify binaries exist on PATH (exits non-zero if missing):
+    command -v python
+    # command -v Rscript
+    # command -v <TOOL_BINARY>
+
+    echo "=== Python version ==="
+    python --version
+
+    # Functional smoke-test (replace with tool-specific command):
+    # <TOOL_BINARY> --version
+    # Rscript -e "library(<RPACKAGE>); packageVersion('<RPACKAGE>')"
+
+    echo "=== All checks passed ==="
+
+# -----------------------------------------------------------------------------
+# %runscript – Executed by `apptainer run <image.sif> [args]`.
+#   Uncomment and customise if you want a default entry-point.
+# -----------------------------------------------------------------------------
+#%runscript
+#    exec <TOOL_BINARY> "$@"
+
+# -----------------------------------------------------------------------------
+# %apprun <app_name> – Named app entry-points.
+#   Called with: apptainer run --app <app_name> <image.sif> [args]
+#   Define one block per exposed script / binary.
+# -----------------------------------------------------------------------------
+%apprun <TOOL_BINARY>
+    exec /opt/<TOOL_NAME>/<TOOL_BINARY> "$@"
+
+# Add more apps as needed:
+# %apprun <ANOTHER_SCRIPT>
+#     exec /opt/<TOOL_NAME>/<ANOTHER_SCRIPT> "$@"
+
+# -----------------------------------------------------------------------------
+# %help – Displayed by `apptainer run-help <image.sif>`.
+# -----------------------------------------------------------------------------
+%help
+    Apptainer container for <TOOL_NAME> v<TOOL_VERSION>
+
+    Usage:
+        apptainer run --app <app_name> <image.sif> [arguments]
+
+    Available apps:
+        * <TOOL_BINARY>         – Main entry-point
+        # * <ANOTHER_SCRIPT>   – (describe what it does)
+
+    Available tools (exec directly):
+        * python
+        # * Rscript
+        # * <OTHER_BINARY>
+
+    Examples:
+        apptainer run --app <TOOL_BINARY> <image.sif> --help
+        apptainer exec <image.sif> python --version
+
+# -----------------------------------------------------------------------------
+# %labels – Key-value metadata stored in the image.
+# -----------------------------------------------------------------------------
+%labels
+    author="<YOUR_NAME>"
+    author_email="<YOUR_EMAIL>"
+    tool="<TOOL_NAME>"
+    tool_version="<TOOL_VERSION>"
+    base_image="mambaorg/micromamba:1.5.10-noble"
+    description="Apptainer container for <TOOL_NAME>"

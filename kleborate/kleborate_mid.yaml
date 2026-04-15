@@ -1,0 +1,33 @@
+name: kleborate
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bcftools=1.22=h3a4d415_1
+  - biopython=1.85=py314h5bd0f2a_2
+  - blast=2.17.0=h66d330f_0
+  - bowtie2=2.5.4=he96a11b_6
+  - bzip2=1.0.8=hda65f42_8
+  - cycler=0.12.1=pyhd8ed1ab_1
+  - dna_features_viewer=3.1.5=pyh7e72e81_0
+  - ectyper=2.0.0=pyhdfd78af_4
+  - entrez-direct=24.0=he881be0_0
+  - ezclermont=0.7.0=pyhdfd78af_0
+  - hmmer=3.4=hb6cb901_4
+  - htslib=1.22.1=h566b1c6_0
+  - kaptive=3.1.0=pyhdfd78af_0
+  - kleborate=3.2.4=pyhdfd78af_0
+  - mash=2.3=hb105d93_9
+  - matplotlib-base=3.10.8=py314h1194b4b_0
+  - minimap2=2.30=h577a1d6_0
+  - mpi=1.0=openmpi
+  - ncbi-amrfinderplus=4.0.23=hf69ffd2_0
+  - ncbi-vdb=3.2.1=h9948957_0
+  - openmpi=4.1.6=hc5af2df_101
+  - pandas=2.3.3=py314ha0b5721_1
+  - pip=25.3=pyh145f28c_0
+  - python=3.14.0=h32b2ec7_102_cp314
+  - samtools=1.22.1=h96c455f_0
+  - seqtk=1.5=h577a1d6_1
+  - stxtyper=1.0.25=hdcf5f25_0
+  - tk=8.6.13=noxft_ha0e22de_103
