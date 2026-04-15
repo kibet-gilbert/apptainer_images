@@ -1,0 +1,9 @@
+# images
+*.sif
+*.aif
+*.img
+
+# tar.gz
+*.tar.gz
+*.zip
+*.bz2 
