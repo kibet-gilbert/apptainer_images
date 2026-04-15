@@ -6,4 +6,7 @@
 # tar.gz
 *.tar.gz
 *.zip
-*.bz2 
+*.bz2
+
+# keywords:
+docs/keywords.md
