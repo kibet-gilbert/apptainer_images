@@ -275,8 +275,8 @@ apptainer inspect --runscript my_tool.sif
 
 ## Important Apptainer Containers Related Documentation
 
-1. [Apptainer Definition File](./DEF_FILE_GUIDE.md)
-2. [Depositing Images in Public Repositories](./DEPOSITING_IMAGES.md)
-3. [Using Apptainer Images in Nextflow](./NEXTFLOW_USAGE.md)
+1. [Apptainer Definition File](./docs/DEF_FILE_GUIDE.md)
+2. [Depositing Images in Public Repositories](./docs/DEPOSITING_IMAGES.md)
+3. [Using Apptainer Images in Nextflow](./docs/NEXTFLOW_USAGE.md)
 
 

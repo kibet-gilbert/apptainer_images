@@ -1,6 +1,6 @@
 # Apptainer Definition File: Anatomy & Reference
 
-> A plain-language guide to every section of `package_apptainer.def` — the template used for building bioinformatics Apptainer (Singularity) images with `micromamba`.
+> A plain-language guide to every section of [`package_apptainer.def`](./template-package_apptainer.def) — the template used for building bioinformatics Apptainer (Singularity) images with `micromamba`.
 
 ---
 
