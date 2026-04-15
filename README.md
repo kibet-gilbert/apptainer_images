@@ -210,7 +210,14 @@ process MY_PROCESS {
 6. Test: `apptainer test <tool>.sif`
 7. Push: `apptainer push <tool>.sif oras://docker.io/kibetgilbert/<tool>:<tag>`
 
-See [docs/README.md](docs/README.md) for the full walkthrough.
+## Important Apptainer Related Documentation   
+
+See [docs/README.md](docs/README.md) and the links below for the full walkthrough.   
+1. [Building a New Image - Detailed Walkthrough](./docs/README.md)
+2. [Apptainer Definition File](./docs/DEF_FILE_GUIDE.md)
+3. [Depositing Images in Public Repositories](./docs/DEPOSITING_IMAGES.md)
+4. [Using Apptainer Images in Nextflow](./docs/NEXTFLOW_USAGE.md)
+
 
 ---
 
