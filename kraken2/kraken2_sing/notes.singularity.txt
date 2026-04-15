@@ -1,1 +1,0 @@
-singularity pull --force docker://staphb/kraken2:latest

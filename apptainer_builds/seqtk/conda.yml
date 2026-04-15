@@ -1,0 +1,6 @@
+channels:
+- conda-forge
+- bioconda
+dependencies:
+- bioconda::seqtk=r93
+- conda-forge::gawk=5.3.1

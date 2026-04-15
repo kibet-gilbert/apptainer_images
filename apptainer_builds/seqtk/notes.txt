@@ -1,0 +1,2 @@
+
+seqera container: oras://community.wave.seqera.io/library/seqtk:r93--7fd5af2ed17cf3aa

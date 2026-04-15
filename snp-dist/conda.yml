@@ -1,5 +1,0 @@
-channels:
-- conda-forge
-- bioconda
-dependencies:
-- bioconda::snp-dists=0.8.2

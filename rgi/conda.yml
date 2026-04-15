@@ -1,5 +1,0 @@
-channels:
-- conda-forge
-- bioconda
-dependencies:
-- bioconda::rgi=6.0.5

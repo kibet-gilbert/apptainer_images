@@ -1,0 +1,1 @@
+apptainer run ~/bioinformatics/github/apptainer/czid_cli/czid_cli_upload.sif czid metagenomics upload-samples   -p 'sludge_kiwasco' --sequencing-platform Illumina --metadata-csv metadata_sludge_csv.csv ./subsampled/

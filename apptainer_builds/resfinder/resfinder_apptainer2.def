@@ -1,0 +1,27 @@
+Bootstrap: docker
+From: python:3.12.7-slim-bullseye
+
+%post
+    VERSION="4.7.2"
+    pip install resfinder
+
+%environment
+    export SHELL=/bin/bash
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+
+%test
+    python -m resfinder --help
+    kma --help
+    blastn homoplasy --help
+
+%help
+    Singularity container for treetime
+    Apps available:
+    * python -m resfinder
+    * kma
+    * blastn
+
+%labels
+    author="gilbert kibet"
+    author_email="kibet.gilbert@ymail.com"

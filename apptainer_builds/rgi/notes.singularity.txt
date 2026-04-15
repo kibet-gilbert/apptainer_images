@@ -1,0 +1,3 @@
+Pull the singularity image using:
+$ singularity pull --force docker://finlaymaguire/rgi:latest
+$ singularity pull --force docker://quay.io/biocontainers/rgi:6.0.3--pyha8f3691_0

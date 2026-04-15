@@ -1,1 +1,0 @@
-apptainer pull oras://community.wave.seqera.io/library/samtools:1.20--ad906e74fde1812b

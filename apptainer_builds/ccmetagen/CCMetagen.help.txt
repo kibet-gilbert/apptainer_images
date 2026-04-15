@@ -1,0 +1,90 @@
+WARNING: SINGULARITY_TMPDIR and APPTAINER_TMPDIR have different values, using the latter
+usage: CCMetagen.py [-h] [-m MODE] -i RES_FP [-o OUTPUT_FP]
+                    [-r REFERENCE_DATABASE] [-ef EXTENDED_OUTPUT_FILE]
+                    [-du DEPTH_UNIT] [-map MAPSTAT] [-d DEPTH] [-c COVERAGE]
+                    [-q QUERY_IDENTITY] [-p PVALUE] [-k KRONA_MODE]
+                    [-tax LOCAL_TAXFILE] [-st SPECIES_THRESHOLD]
+                    [-gt GENUS_THRESHOLD] [-ft FAMILY_THRESHOLD]
+                    [-ot ORDER_THRESHOLD] [-ct CLASS_THRESHOLD]
+                    [-pt PHYLUM_THRESHOLD] [-off TURN_OFF_SIM_THRESHOLDS] [-v]
+
+options:
+  -h, --help            show this help message and exit
+  -m MODE, --mode MODE  What would you like CCMetagen to do? Valid options are
+                        'visual', 'text' or 'both': text: parses kma, filters
+                        based on quality and output a text file with taxonomic
+                        information and detailed mapping information. visual:
+                        parses kma, filters based on quality and output a
+                        simplified text file and a krona html file for
+                        visualization. both: outputs both text and visual file
+                        formats. (default: both)
+  -i RES_FP, --res_fp RES_FP
+                        Path to the KMA result (.res file) (default: None)
+  -o OUTPUT_FP, --output_fp OUTPUT_FP
+                        Path to the output file. (default: CCMetagen_out)
+  -r REFERENCE_DATABASE, --reference_database REFERENCE_DATABASE
+                        Which reference database was used. Options: UNITE,
+                        RefSeq or nt. (default: nt)
+  -ef EXTENDED_OUTPUT_FILE, --extended_output_file EXTENDED_OUTPUT_FILE
+                        Produce an extended output file that includes the
+                        percentage of classified reads. Options: y or n. To
+                        use this featire, you need to generate the mapstat
+                        file when required unning KMA (use flag -ef), and use
+                        it as input in CCMetagen (flag --mapstat). (default:
+                        n)
+  -du DEPTH_UNIT, --depth_unit DEPTH_UNIT
+                        Desired unit for Depth(abundance) measurements.
+                        Default = kma (KMA default depth, which is the number
+                        of nucleotides overlapping each template, divided by
+                        the lengh of the template). Alternatively, you can
+                        have abundance calculated in Reads Per Million (RPM,
+                        option 'rpm'), in number of nucleotides overlaping the
+                        template (option 'nc') or in number of fragments (i.e.
+                        PE reads, option 'fr'). If you use the 'nc', 'rpm' or
+                        'fr' options, remember to change the default --depth
+                        parameter accordingly. Valid options are 'nc', 'rpm',
+                        'fr' and 'kma'. (default: kma)
+  -map MAPSTAT, --mapstat MAPSTAT
+                        Path to the mapstat file produced with KMA when using
+                        the -ef flag (.mapstat). Required when calculating
+                        abundances in RPM or in number of fragments, visualing
+                        the abundances in readCounts or readContAln for the
+                        krona graph or when producing the
+                        extended_output_file. (default: None)
+  -d DEPTH, --depth DEPTH
+                        Minimum sequencing depth. The unit corresponds to the
+                        one used with --depth_unit If you use --depth_unit
+                        different from the default, change this accordingly.
+                        (default: 0.2)
+  -c COVERAGE, --coverage COVERAGE
+                        Percetange of minimum coverage, e.g. 20 means 20% of
+                        the reference sequence. (default: 20)
+  -q QUERY_IDENTITY, --query_identity QUERY_IDENTITY
+                        Minimum query identity (Phylum level). (default: 50)
+  -p PVALUE, --pvalue PVALUE
+                        Minimum p-value. (default: 0.05)
+  -k KRONA_MODE, --krona_mode KRONA_MODE
+                        Abundance measure for the Krona graph. You can choose
+                        depth ('Depth'), readCount ('rc') or readCountAln
+                        ('rca'). 'rc' and 'rca' require a specified --mapstat
+                        file. (default: Depth)
+  -tax LOCAL_TAXFILE, --local_taxfile LOCAL_TAXFILE
+                        Use if a local taxdump file wants to be used.
+                        (default: None)
+  -st SPECIES_THRESHOLD, --species_threshold SPECIES_THRESHOLD
+                        Species-level similarity threshold. (default: 98.41)
+  -gt GENUS_THRESHOLD, --genus_threshold GENUS_THRESHOLD
+                        Genus-level similarity threshold. (default: 96.31)
+  -ft FAMILY_THRESHOLD, --family_threshold FAMILY_THRESHOLD
+                        Family-level similarity threshold. (default: 88.51)
+  -ot ORDER_THRESHOLD, --order_threshold ORDER_THRESHOLD
+                        Order-level similarity threshold. (default: 81.21)
+  -ct CLASS_THRESHOLD, --class_threshold CLASS_THRESHOLD
+                        Class-level similarity threshold. (default: 80.91)
+  -pt PHYLUM_THRESHOLD, --phylum_threshold PHYLUM_THRESHOLD
+                        Phylum-level similarity threshold. 0 means not
+                        applied. (default: 0)
+  -off TURN_OFF_SIM_THRESHOLDS, --turn_off_sim_thresholds TURN_OFF_SIM_THRESHOLDS
+                        Turns simularity-based filtering off. Options = 'y' or
+                        'n'. (default: n)
+  -v, --version         show program's version number and exit

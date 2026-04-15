@@ -1,0 +1,13 @@
+Horizontal gene transfer (HGT) is a significant mechanism by which antibiotic resistance genes (ARGs) spread among bacteria1. This process allows bacteria to acquire resistance genes from other bacteria, even from different species, which can lead to the rapid spread of resistance1.
+
+Key Points:
+HGT Mechanisms: Bacteria can acquire ARGs through transformation (uptake of free DNA), transduction (transfer by bacteriophages), and conjugation (direct transfer between bacteria)2.
+
+Environmental Impact: Environments like wastewater treatment plants are hotspots for HGT due to the high bacterial density and presence of antibiotics, which can act as selective pressure3.
+
+Public Health Concern: The spread of ARGs through HGT poses a significant threat to public health, as it can lead to the emergence of multidrug-resistant pathogens3.
+
+
+i)Das B, Emon MI, Moumi NA, Sein J, Pruden A, Heath LS and Zhang L (2022) HT-ARGfinder: A Comprehensive Pipeline for Identifying Horizontally Transferred Antibiotic Resistance Genes and Directionality in Metagenomic Sequencing Data. Front. Environ. Sci. 10:901917. doi: 10.3389/fenvs.2022.901917
+ii)Villa, T.G., Feijoo-Siota, L., Rama, J.R., Sánchez-Pérez, A., Viñas, M. (2019). Horizontal Gene Transfer Between Bacteriophages and Bacteria: Antibiotic Resistances and Toxin Production. In: Villa, T., Viñas, M. (eds) Horizontal Gene Transfer. Springer, Cham. https://doi.org/10.1007/978-3-030-21862-1_3
+iii)Millar JA, Raghavan R. 2017. Accumulation and expression of horizontally acquired genes in Arcobacter cryaerophilus that thrives in sewage. PeerJ 5:e3269

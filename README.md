@@ -1,282 +1,240 @@
-# Building & Testing an Apptainer Image from a Definition File
+# Apptainer Container Recipes for Bioinformatics
 
-> Step-by-step instructions for converting a `.def` file into a `.sif` container image and verifying it works correctly.
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-kibetgilbert-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/repositories/kibetgilbert)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Apptainer](https://img.shields.io/badge/Apptainer-1.2+-blue)](https://apptainer.org)
 
----
+A curated collection of **Apptainer (Singularity) container recipes** for bioinformatics tools focused on antimicrobial resistance (AMR) profiling, metagenomics, whole-genome sequencing (WGS) analysis, variant annotation, single-cell transcriptomics and sequence quality control.
 
-## Table of Contents
-
-1. [Prerequisites](#prerequisites)
-2. [Prepare Your Build Directory](#prepare-your-build-directory)
-3. [Prepare the conda.yml File](#prepare-the-condayml-file)
-4. [Build the Image](#build-the-image)
-5. [Test the Image](#test-the-image)
-6. [Get the Help Message](#get-the-help-message)
-7. [Run a Named App](#run-a-named-app)
-8. [Execute an Arbitrary Command](#execute-an-arbitrary-command)
-9. [Interactive Shell](#interactive-shell)
-10. [Troubleshooting Common Build Errors](#troubleshooting-common-build-errors)
-11. [Important Apptainer Containers Related Documentation](#important-apptainer-containers-related-documentation)
+Built images are hosted on **Docker Hub** → [`kibetgilbert`](https://hub.docker.com/repositories/kibetgilbert) and can be pulled directly with Apptainer.
 
 ---
 
-## Prerequisites
+## Repository Structure
 
-| Requirement | Minimum version | Check |
-|---|---|---|
-| Apptainer | 1.2+ | `apptainer --version` |
-| Root / fakeroot access | — | See note below |
-| Internet access | — | Needed to pull base image & conda packages |
-| Free disk space | ≥ 10 GB | `df -h .` |
+```
+.
+├── apptainer_builds/          # One subfolder per tool
+│   ├── abricate/
+│   │   ├── abricate_apptainer.def   # Apptainer definition file
+│   │   ├── abricate_apptainer.sif   # Built image (not tracked by git)
+│   │   └── conda.yml                # Conda environment spec
+│   ├── fastp/
+│   │   └── ...
+│   └── ...                          # (one folder per tool)
+│
+├── docs/                      # Documentation
+│   ├── DEF_FILE_GUIDE.md      # Anatomy of a .def file
+│   ├── README.md              # Building & testing images
+│   ├── DEPOSITING_IMAGES.md   # Pushing images to registries
+│   ├── NEXTFLOW_USAGE.md      # Using images in Nextflow pipelines
+│   └── template-package_apptainer.def   # Template definition file
+│
+├── images_registry.tsv        # Machine-readable image database (edit this!)
+└── README.md                  # This file
+```
 
-> **Root vs fakeroot:** Building from a `.def` file normally requires root privileges (`sudo`) because `%post` runs as root. On HPC systems where `sudo` is unavailable, use `apptainer build --fakeroot` (requires the system administrator to configure fakeroot for your user account).
+> **`.sif` files are not tracked by git** — they are large binary files. Pull them from Docker Hub (see [Pulling Images](#pulling-images)) or build them locally from the `.def` files.
 
 ---
 
-## Prepare Your Build Directory
+## Quick Start
 
-Organise all inputs in a single folder before building. This keeps the build context clean and makes the `%files` section paths predictable.
-
-```
-project/
-├── package_apptainer.def   # definition file
-├── conda.yml               # conda environment specification
-└── optional_tarball.tar.gz # (if required by %files)
-```
+### Pull a pre-built image from Docker Hub
 
 ```bash
-mkdir -p ~/<path-to-apptainer-builds>/my_tool
-cd ~/<path-to-apptainer-builds>/my_tool
-```
-set up the definition file:
-```bash
-# Optional: Download template from gitHub:
-wget https://raw.githubusercontent.com/kibet-gilbert/apptainer_images/refs/heads/main/package_apptainer.def .
+apptainer pull docker://kibetgilbert/<image_name>:<tag>
 
-# Copy or download your files here
-cp /<path-to>/package_apptainer.def .
+# Example:
+apptainer pull docker://kibetgilbert/fastp:0.23
+apptainer pull docker://kibetgilbert/kraken2:2.1
+apptainer pull docker://kibetgilbert/rgi:6.0.3
 ```
-Set up the environment file:
+
+### Build an image locally from a definition file
+
+```bash
+cd apptainer_builds/fastp/
+sudo apptainer build fastp_apptainer.sif fastp_apptainer.def
 ```
-cp /path/to/conda.yml .
+
+### Get help from an image
+
+```bash
+apptainer run-help fastp_apptainer.sif
 ```
+
+For full build, test, and usage instructions, see the **[docs/](docs/)** folder.
 
 ---
 
-## Prepare the conda.yml File
+## Image Registry
 
-You must have a `conda.yml` file in the build directory before running the build. Choose **one** of the two methods below.
-
-### Method 1 — Seqera Containers (easiest)
-
-1. Open [https://seqera.io/containers/](https://seqera.io/containers/)
-2. Search for each tool you need and add it to the container
-3. Set **Container type → Singularity**
-4. Click **Generate** then **Download conda.yml**
-5. Save the file as `conda.yml` in your build directory
-
-### Method 2 — Export a local conda environment
-
-```bash
-# Activate the environment you want to containerise
-conda activate my_tool_env
-
-# Export (cross-platform, no build strings)
-conda env export --no-builds | grep -v "^prefix:" > conda.yml
-
-# Or minimal (only explicitly installed packages — most portable)
-conda env export --from-history | grep -v "^prefix:" > conda.yml
-```
-
-Verify the file looks reasonable before building:
-
-```bash
-head -30 conda.yml
-```
+> The canonical source of truth is [`images_registry.tsv`](images_registry.tsv). The table below is rendered from it for convenience.  
+> To update: edit the TSV and regenerate this table, or update both in sync.  
+> Columns: **Tool** | **Version** | **Category** | **Description** | **GitHub** | **Citation** | **Docker Hub Image**
 
 ---
 
-## Build the Image
+### AMR Detection & Resistance Gene Identification
 
-### Standard build (with and without sudo)
-
-```bash
-# with sudo
-sudo apptainer build my_tool.sif package_apptainer.def
-
-# without sudo
-apptainer build my_tool.sif package_apptainer.def
-```
-
-### Build with fakeroot (HPC — no sudo)
-
-```bash
-apptainer build --fakeroot my_tool.sif package_apptainer.def
-```
-
-### Build with a writable sandbox (useful for iterative development)
-
-Not necessary for images but a viable option for actively developing/testing images:
-```bash
-# Build a writable directory instead of a .sif
-sudo apptainer build --sandbox my_tool_sandbox/ package_apptainer.def
-
-# Shell into the sandbox to debug interactively
-sudo apptainer shell --writable my_tool_sandbox/
-
-# Once satisfied, convert the sandbox to a .sif
-sudo apptainer build my_tool.sif my_tool_sandbox/
-```
-
-### Build with verbose logging
-
-```bash
-sudo apptainer build --notest my_tool.sif package_apptainer.def 2>&1 | tee build.log
-```
-
-> **Tip:** `--notest` skips the `%test` section during the build (run it manually afterwards). This speeds up iteration when debugging `%post`.
+| Tool | Version | Description | GitHub | Citation | Docker Hub |
+|---|---|---|---|---|---|
+| **ABRicate** | 1.0.1 | Mass screening of contigs for AMR and virulence genes | [tseemann/abricate](https://github.com/tseemann/abricate) | Seemann T. *ABRicate*, GitHub (2020) | [`kibetgilbert/abricate:1.0.1`](https://hub.docker.com/r/kibetgilbert/abricate) |
+| **AMR++** | 3.0 | Nextflow pipeline for resistome profiling with MEGARes | [Microbial-Ecology-Group/AMRplusplus](https://github.com/Microbial-Ecology-Group/AMRplusplus) | Lakin SM et al. *Nucleic Acids Res* (2017) [doi](https://doi.org/10.1093/nar/gkw1009) | [`kibetgilbert/amrplusplus:latest`](https://hub.docker.com/r/kibetgilbert/amrplusplus) |
+| **ARGem** | — | Antibiotic Resistance Gene detection tool | [cezar-sindrilaru/argem](https://github.com/cezar-sindrilaru/argem) | — | [`kibetgilbert/argem:latest`](https://hub.docker.com/r/kibetgilbert/argem) |
+| **ARGNet (CPU)** | — | Deep learning-based ARG detection (CPU build) | [Keio-Bioinformatics-Lab/ARGNet](https://github.com/Keio-Bioinformatics-Lab/ARGNet) | — | [`kibetgilbert/argnetcpu:latest`](https://hub.docker.com/r/kibetgilbert/argnetcpu) |
+| **ARGNet (GPU)** | — | Deep learning-based ARG detection (GPU build) | [Keio-Bioinformatics-Lab/ARGNet](https://github.com/Keio-Bioinformatics-Lab/ARGNet) | — | [`kibetgilbert/argnetgpu:latest`](https://hub.docker.com/r/kibetgilbert/argnetgpu) |
+| **mgs2amr** | — | Metagenome-scale AMR gene detection (BLAST + MetaCherchant + R) | [pieterjanvc/mgs2amr](https://github.com/pieterjanvc/mgs2amr) | van Coillie PJ et al. GitHub | [`kibetgilbert/mgs2amr:latest`](https://hub.docker.com/r/kibetgilbert/mgs2amr) |
+| **NCBI AMRFinderPlus** | 3.12.x | NCBI AMRFinderPlus for AMR genes and point mutations | [ncbi/amr](https://github.com/ncbi/amr) | Feldgarden M et al. *Sci Rep* (2021) [doi](https://doi.org/10.1038/s41598-021-91456-0) | [`kibetgilbert/ncbiamrfinderplus:3.12`](https://hub.docker.com/r/kibetgilbert/ncbiamrfinderplus) |
+| **ResFinder** | 4.5 / 4.6 | Detection of acquired AMR genes from assembled genomes or reads | [genomicepidemiology/resfinder](https://github.com/genomicepidemiology/resfinder) | Bortolaia V et al. *J Antimicrob Chemother* (2020) [doi](https://doi.org/10.1093/jac/dkaa345) | [`kibetgilbert/resfinder:4.6`](https://hub.docker.com/r/kibetgilbert/resfinder) |
+| **RGI** | 6.0.x | Resistance Gene Identifier using CARD database | [arpcard/rgi](https://github.com/arpcard/rgi) | Alcock BP et al. *Nucleic Acids Res* (2023) [doi](https://doi.org/10.1093/nar/gkac920) | [`kibetgilbert/rgi:6.0.3`](https://hub.docker.com/r/kibetgilbert/rgi) |
 
 ---
 
-## Test the Image
+### Metagenomics & Taxonomic Classification
 
-The `%test` section is run automatically at the end of `apptainer build`. To run it manually at any time:
-
-```bash
-apptainer test my_tool.sif
-```
-
-Expected output (example):
-
-```
-=== Verifying tool availability ===
-/opt/conda/bin/python
-=== Python version ===
-Python 3.11.8
-=== All checks passed ===
-```
-
-If any `command -v` check fails, the test exits with a non-zero code and prints the failing command.
+| Tool | Version | Description | GitHub | Citation | Docker Hub |
+|---|---|---|---|---|---|
+| **CCMetagen** | 1.4.x | Accurate metagenomic species classification using KMA | [vrmarcelino/CCMetagen](https://github.com/vrmarcelino/CCMetagen) | Marcelino VR et al. *Genome Biology* (2020) [doi](https://doi.org/10.1186/s13059-020-02014-2) | [`kibetgilbert/ccmetagen:1.4`](https://hub.docker.com/r/kibetgilbert/ccmetagen) |
+| **CZ ID** | — | Chan Zuckerberg infectious disease metagenomics pipeline | [chanzuckerberg/czid-workflows](https://github.com/chanzuckerberg/czid-workflows) | — | [`kibetgilbert/czid:latest`](https://hub.docker.com/r/kibetgilbert/czid) |
+| **CZ ID CLI** | latest | Command-line client for uploading samples to CZ ID | [chanzuckerberg/czid-cli](https://github.com/chanzuckerberg/czid-cli) | — | [`kibetgilbert/czid_cli:latest`](https://hub.docker.com/r/kibetgilbert/czid_cli) |
+| **Kraken2** | 2.1.x | Ultrafast taxonomic classification using k-mer matching | [DerrickWood/kraken2](https://github.com/DerrickWood/kraken2) | Wood DE et al. *Genome Biology* (2019) [doi](https://doi.org/10.1186/s13059-019-1891-0) | [`kibetgilbert/kraken2:2.1`](https://hub.docker.com/r/kibetgilbert/kraken2) |
+| **KrakenTools** | 1.2 | Downstream analysis scripts for Kraken/Bracken output | [jenniferlu717/KrakenTools](https://github.com/jenniferlu717/KrakenTools) | Lu J et al. *Nat Protoc* (2022) [doi](https://doi.org/10.1038/s41596-022-00738-y) | [`kibetgilbert/krakentools:1.2`](https://hub.docker.com/r/kibetgilbert/krakentools) |
+| **Krona** | 2.8.x | Interactive hierarchical taxonomy visualisation | [marbl/Krona](https://github.com/marbl/Krona) | Ondov BD et al. *BMC Bioinformatics* (2011) [doi](https://doi.org/10.1186/1471-2105-12-385) | [`kibetgilbert/krona:2.8`](https://hub.docker.com/r/kibetgilbert/krona) |
+| **MAGViral / MAGAmr** | — | MAG-based viral and AMR gene characterisation | — | — | [`kibetgilbert/magviral:latest`](https://hub.docker.com/r/kibetgilbert/magviral) |
 
 ---
 
-## Get the Help Message
+### Whole-Genome Sequencing (WGS) & Assembly
 
-Display the `%help` section of the image:
-
-```bash
-apptainer run-help my_tool.sif
-```
-
-Example output:
-
-```
-Apptainer container for my_tool v1.0.0
-
-Usage:
-    apptainer run --app <app_name> my_tool.sif [arguments]
-
-Available apps:
-    * my_tool_script.sh   – Main entry-point
-
-Available tools (exec directly):
-    * python
-    * Rscript
-```
+| Tool | Version | Description | GitHub | Citation | Docker Hub |
+|---|---|---|---|---|---|
+| **BacPipe** | latest | Rapid WGS pipeline for clinical diagnostic bacteriology | [wholeGenomeSequencingAnalysisPipeline/BacPipe](https://github.com/wholeGenomeSequencingAnalysisPipeline/BacPipe) | Dandachi I et al. *iScience* (2020) [doi](https://doi.org/10.1016/j.isci.2019.100769) | [`kibetgilbert/bacpipe:latest`](https://hub.docker.com/r/kibetgilbert/bacpipe) |
+| **Dragonflye** | 1.x | Fast bacterial genome assembler for Oxford Nanopore reads | [rpetit3/dragonflye](https://github.com/rpetit3/dragonflye) | Petitjean M. *GitHub* (2022) | [`kibetgilbert/dragonflye:latest`](https://hub.docker.com/r/kibetgilbert/dragonflye) |
+| **GAMBIT** | 1.x | Genomic approximation method for bacterial ID and tracking | [jlumpe/gambit](https://github.com/jlumpe/gambit) | Lumpe J et al. *PLOS ONE* (2023) [doi](https://doi.org/10.1371/journal.pone.0277575) | [`kibetgilbert/gambit:latest`](https://hub.docker.com/r/kibetgilbert/gambit) |
+| **Kleborate** | 2.x | Genotyping tool for *Klebsiella* (MLST, AMR, virulence, capsule) | [klebgenomics/Kleborate](https://github.com/klebgenomics/Kleborate) | Lam MMC et al. *Nat Commun* (2021) [doi](https://doi.org/10.1038/s41467-021-24448-3) | [`kibetgilbert/kleborate:2`](https://hub.docker.com/r/kibetgilbert/kleborate) |
+| **MEGAHIT** | 1.2.x | Ultra-fast memory-efficient metagenomic assembler | [voutcn/megahit](https://github.com/voutcn/megahit) | Li D et al. *Bioinformatics* (2015) [doi](https://doi.org/10.1093/bioinformatics/btv033) | [`kibetgilbert/megahit:1.2`](https://hub.docker.com/r/kibetgilbert/megahit) |
+| **SNP-dists** | 0.8.x | Pairwise SNP distance matrix from whole-genome alignments | [tseemann/snp-dists](https://github.com/tseemann/snp-dists) | Seemann T. *snp-dists*, GitHub | [`kibetgilbert/snpdist:0.8`](https://hub.docker.com/r/kibetgilbert/snpdist) |
 
 ---
 
-## Run a Named App
+### Quality Control & Preprocessing
 
-If the definition file defines `%apprun` blocks, run a specific app with:
+| Tool | Version | Description | GitHub | Citation | Docker Hub |
+|---|---|---|---|---|---|
+| **BBTools** | 39.x | Suite for DNA/RNA-seq QC, trimming and preprocessing (BBDuk, reformat) | [BioInfoTools/BBMap](https://github.com/BioInfoTools/BBMap) | Bushnell B. *DOE JGI* (2014) [url](https://escholarship.org/uc/item/1h3515gn) | [`kibetgilbert/bbtools:39`](https://hub.docker.com/r/kibetgilbert/bbtools) |
+| **bcl2fastq2 / SeqDataQC** | 2.20 | Illumina sequencing data QC and demultiplexing pipeline | [Illumina bcl2fastq2](https://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) | Illumina bcl2fastq2 v2.20 | [`kibetgilbert/seqdataqc:latest`](https://hub.docker.com/r/kibetgilbert/seqdataqc) |
+| **fastp** | 0.23.x | Ultra-fast all-in-one FASTQ preprocessor and QC tool | [OpenGene/fastp](https://github.com/OpenGene/fastp) | Chen S et al. *Bioinformatics* (2018) [doi](https://doi.org/10.1093/bioinformatics/bty560) | [`kibetgilbert/fastp:0.23`](https://hub.docker.com/r/kibetgilbert/fastp) |
+| **FastQC** | 0.12.x | Quality control tool for high-throughput sequencing data | [s-andrews/FastQC](https://github.com/s-andrews/FastQC) | Andrews S. *Babraham Bioinformatics* (2010) [url](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) | [`kibetgilbert/fastqc:0.12`](https://hub.docker.com/r/kibetgilbert/fastqc) |
+
+---
+
+### Host Depletion
+
+| Tool | Version | Description | GitHub | Citation | Docker Hub |
+|---|---|---|---|---|---|
+| **Hostile** | 1.x | Accurate removal of host reads from metagenomic data | [bede/hostile](https://github.com/bede/hostile) | Constantinides B. *Bioinformatics* (2023) [doi](https://doi.org/10.1093/bioinformatics/btad728) | [`kibetgilbert/hostile:latest`](https://hub.docker.com/r/kibetgilbert/hostile) |
+| **WiperTools** | — | Host contamination removal tools for sequencing reads | — | — | [`kibetgilbert/wipertools:latest`](https://hub.docker.com/r/kibetgilbert/wipertools) |
+
+---
+
+### Sequence Analysis & Variant Annotation
+
+| Tool | Version | Description | GitHub | Citation | Docker Hub |
+|---|---|---|---|---|---|
+| **KMA** | 1.4.x | K-mer based alignment for mapping reads to redundant databases | [genomicepidemiology/KMA](https://github.com/genomicepidemiology/KMA) | Clausen PTLC et al. *BMC Bioinformatics* (2018) [doi](https://doi.org/10.1186/s12859-018-2336-6) | [`kibetgilbert/kma:1.4`](https://hub.docker.com/r/kibetgilbert/kma) |
+| **SAMtools** | 1.20 | Suite for manipulating SAM/BAM/CRAM alignment files | [samtools/samtools](https://github.com/samtools/samtools) | Danecek P et al. *GigaScience* (2021) [doi](https://doi.org/10.1093/gigascience/giab008) | [`kibetgilbert/samtools:1.20`](https://hub.docker.com/r/kibetgilbert/samtools) |
+| **seqtk** | 1.4 | Toolkit for processing sequences in FASTA/FASTQ formats | [lh3/seqtk](https://github.com/lh3/seqtk) | Li H. *seqtk*, GitHub | [`kibetgilbert/seqtk:1.4`](https://hub.docker.com/r/kibetgilbert/seqtk) |
+| **SnpEff** | 5.x | Genetic variant annotation and functional effect prediction | [pcingola/SnpEff](https://github.com/pcingola/SnpEff) | Cingolani P et al. *Fly* (2012) [doi](https://doi.org/10.4161/fly.19695) | [`kibetgilbert/snpeff:5`](https://hub.docker.com/r/kibetgilbert/snpeff) |
+| **SnpSift** | 5.x | Filter and manipulate annotated VCF files (companion to SnpEff) | [pcingola/SnpEff](https://github.com/pcingola/SnpEff) | Cingolani P et al. *Front Genet* (2012) [doi](https://doi.org/10.3389/fgene.2012.00035) | [`kibetgilbert/snpsift:5`](https://hub.docker.com/r/kibetgilbert/snpsift) |
+
+---
+
+### Data Formats & Utilities
+
+| Tool | Version | Description | GitHub | Citation | Docker Hub |
+|---|---|---|---|---|---|
+| **BIOM Format** | — | R/Python tools for reading and writing BIOM format microbiome files | [joey711/biom](https://github.com/joey711/biom) | McDonald D et al. *GigaScience* (2012) [doi](https://doi.org/10.1186/2047-217X-1-7) | [`kibetgilbert/biomformat:latest`](https://hub.docker.com/r/kibetgilbert/biomformat) |
+| **Bash/AWK** | — | Minimal Bash and AWK utility container for scripting | — | — | [`kibetgilbert/bashawk:latest`](https://hub.docker.com/r/kibetgilbert/bashawk) |
+| **Git Tools** | — | Git and developer tools for CI/CD workflows | — | — | [`kibetgilbert/gittools:latest`](https://hub.docker.com/r/kibetgilbert/gittools) |
+| **nf-core** | — | nf-core tools for Nextflow pipeline management | [nf-core/tools](https://github.com/nf-core/tools) | Ewels PA et al. *Nat Biotechnol* (2020) [doi](https://doi.org/10.1038/s41587-020-0439-x) | [`kibetgilbert/nf-core:latest`](https://hub.docker.com/r/kibetgilbert/nf-core) |
+
+---
+
+## Documentation
+
+| Document | Description |
+|---|---|
+| [docs/DEF_FILE_GUIDE.md](docs/DEF_FILE_GUIDE.md) | Anatomy of an Apptainer `.def` file — every section explained |
+| [docs/README.md](docs/README.md) | Step-by-step guide to building and testing a `.sif` image |
+| [docs/DEPOSITING_IMAGES.md](docs/DEPOSITING_IMAGES.md) | How to push images to Sylabs, Docker Hub, GHCR, Quay.io |
+| [docs/NEXTFLOW_USAGE.md](docs/NEXTFLOW_USAGE.md) | Using images locally and from registries in Nextflow pipelines |
+| [docs/template-package_apptainer.def](docs/template-package_apptainer.def) | Annotated `.def` template for new images |
+
+---
+
+## Pulling Images
+
+All images can be pulled directly with Apptainer using the `docker://` URI:
 
 ```bash
-apptainer run --app <app_name> my_tool.sif [arguments]
+# Generic pattern
+apptainer pull docker://kibetgilbert/<tool>:<tag>
 
-# Examples:
-apptainer run --app mgs2amr.sh my_tool.sif --help
-apptainer run --app blastn my_tool.sif -query input.fa -db nt -out results.txt
+# Examples
+apptainer pull docker://kibetgilbert/abricate:1.0.1
+apptainer pull docker://kibetgilbert/kraken2:2.1
+apptainer pull docker://kibetgilbert/rgi:6.0.3
+apptainer pull docker://kibetgilbert/fastp:0.23
 ```
 
-List all available apps defined in the image:
+Or use them directly in Nextflow by setting the container URI:
 
-```bash
-apptainer inspect --list-apps my_tool.sif
+```groovy
+process MY_PROCESS {
+    container 'docker://kibetgilbert/abricate:1.0.1'
+    ...
+}
 ```
 
 ---
 
-## Execute an Arbitrary Command
+## Building a New Image
 
-Run any binary inside the container without a named app:
+1. Copy the template: `docs/template-package_apptainer.def`
+2. Create a folder: `apptainer_builds/<tool_name>/`
+3. Add your `conda.yml` (from [Seqera Containers](https://seqera.io/containers/) or a local env)
+4. Customise the `.def` file (replace all `<PLACEHOLDER>` values)
+5. Build: `sudo apptainer build <tool>.sif <tool>.def`
+6. Test: `apptainer test <tool>.sif`
+7. Push: `apptainer push <tool>.sif oras://docker.io/kibetgilbert/<tool>:<tag>`
 
-```bash
-apptainer exec my_tool.sif <command> [arguments]
-
-# Examples:
-apptainer exec my_tool.sif python --version
-apptainer exec my_tool.sif Rscript -e "sessionInfo()"
-apptainer exec my_tool.sif blastn -version
-
-# With bind mounts (to access host data):
-apptainer exec --bind /data:/data my_tool.sif blastn \
-    -query /data/input.fa \
-    -db /data/nt \
-    -out /data/results.txt
-```
+See [docs/README.md](docs/README.md) for the full walkthrough.
 
 ---
 
-## Interactive Shell
+## Updating the Image Registry
 
-Drop into a shell inside the container for exploration or debugging:
+The [`images_registry.tsv`](images_registry.tsv) file is the editable source of truth for all image metadata. It has the following columns:
 
-```bash
-apptainer shell my_tool.sif
-
-# With data directory mounted:
-apptainer shell --bind /data:/data my_tool.sif
+```
+tool | folder | version | category | description | github_url | citation | doi_or_url | docker_hub_image | notes
 ```
 
-Inside the shell, you will see the `Apptainer>` prompt. Type `exit` to leave.
+Edit it directly with any spreadsheet application or text editor. The README table above should be kept in sync when new images are added.
 
 ---
 
-## Inspect Image Metadata
+## Author
 
-```bash
-# View %labels metadata
-apptainer inspect my_tool.sif
-
-# View the definition file used to build the image
-apptainer inspect --deffile my_tool.sif
-
-# View the environment variables (%environment section)
-apptainer inspect --environment my_tool.sif
-
-# View the runscript (%runscript section)
-apptainer inspect --runscript my_tool.sif
-```
+**Gilbert Kibet**  
+📧 kibet.gilbert.r@gmail.com  
+🐳 [hub.docker.com/repositories/kibetgilbert](https://hub.docker.com/repositories/kibetgilbert)
 
 ---
 
-## Troubleshooting Common Build Errors
+## License
 
-| Error | Likely cause | Fix |
-|---|---|---|
-| `FATAL: Unable to pull docker://...` | No internet access or Docker Hub rate limit | Check connectivity; authenticate with `apptainer remote login docker://docker.io` |
-| `PackageNotFoundError` in micromamba | Package name/version not in conda channels | Check the package name on [anaconda.org](https://anaconda.org) and update `conda.yml` |
-| `command not found` in `%test` | Binary not installed or not on `PATH` | Verify the package is in `conda.yml`; check `%environment` PATH exports |
-| `R CMD INSTALL` fails | R not installed or wrong R version | Add `r-base` to `conda.yml` and pin the version |
-| `No space left on device` during build | `/tmp` or working directory is full | Set `APPTAINER_TMPDIR` to a larger partition: `export APPTAINER_TMPDIR=/scratch/tmp` |
-| `fakeroot: command not found` | fakeroot not configured by sysadmin | Ask your HPC administrator to enable fakeroot for your account |
-| Build hangs on conda solve | Conflicting package versions | Simplify `conda.yml`; pin fewer versions; use `mamba` solver hints |
-
-
-## Important Apptainer Related Documentation
-
-1. [Apptainer Definition File](./docs/DEF_FILE_GUIDE.md)
-2. [Depositing Images in Public Repositories](./docs/DEPOSITING_IMAGES.md)
-3. [Using Apptainer Images in Nextflow](./docs/NEXTFLOW_USAGE.md)
-
-
+This repository (definition files and documentation) is released under the [MIT License](LICENSE).  
+Individual tools retain their own licenses — please cite the appropriate paper(s) when using each tool in published research.
