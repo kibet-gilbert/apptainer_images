@@ -273,7 +273,7 @@ apptainer inspect --runscript my_tool.sif
 | Build hangs on conda solve | Conflicting package versions | Simplify `conda.yml`; pin fewer versions; use `mamba` solver hints |
 
 
-## Important Apptainer Containers Related Documentation
+## Important Apptainer Related Documentation
 
 1. [Apptainer Definition File](./docs/DEF_FILE_GUIDE.md)
 2. [Depositing Images in Public Repositories](./docs/DEPOSITING_IMAGES.md)
