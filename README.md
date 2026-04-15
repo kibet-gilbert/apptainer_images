@@ -236,7 +236,7 @@ Edit it directly with any spreadsheet application or text editor. The README tab
 
 ## License
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)   
 This repository (definition files and documentation) is released under the [MIT License](LICENSE).  
 Individual tools retain their own licenses — please cite the appropriate paper(s) when using each tool in published research.
 
