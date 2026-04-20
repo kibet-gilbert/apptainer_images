@@ -12,3 +12,83 @@ From: mambaorg/micromamba:1.5.10-noble
     micromamba clean -a -y
 %environment
     export PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
+%test
+    echo "=== Verifying tool availability ==="
+    # Verify binaries exist on PATH (exits non-zero if missing):
+    command -v python
+    command -v kleborate
+
+    echo "=== Veryfying tool versions ==="
+    # tool version
+    kleborate --list_modules
+    python --version
+    ectyper --version
+    ezclermont --version
+    kaptive --version
+    kleborate --version
+    mash --version
+    minimap2 --version
+    amrfinder --version
+    stxtyper --version
+
+#%runscript
+%apprun kleborate
+    exec kleborate "$@"
+%apprun ectyper
+    exec ectyper "$@"
+%apprun ezclermont
+    exec ezclermont "$@"
+%apprun kaptive
+    exec kaptive "$@"
+%apprun mash
+    exec mash "$@"
+%apprun amrfinder
+    exec amrfinder "$@"
+%apprun stxtyper
+    exec stxtyper "$@"
+%apprun minimap2
+    exec minimap2 "$@"
+
+%help
+    Apptainer container for kleborate v3.2.4
+
+    Usage:
+        apptainer run --app <app_name> kleborate_apptainer.sif [arguments]
+
+    Available apps:
+        * kleborate	– Main entry-point
+        * ectyper	– typing e.coli
+        * ezclermont	– Escherichia phylotyping
+        * kaptive	– Insilico serotyping of K.pneumoniae/A.baumannii/e.t.c
+        * mash		– MASH Distance based on kmers
+        * amrfinder	– AMR detection using AMRFinderPlus DB
+        * stxtyper	– Shiga-toxin genes detection in E. coli
+        * minimap2	– Alignment tool
+        * Other kleborate modules*
+
+    Available tools (exec directly):
+        * python
+        * kleborate --list_modules
+        * ectyper
+        * ezclermont
+        * kaptive
+        * kleborate
+        * mash
+        * minimap2
+        * amrfinder
+        * stxtyper
+
+    Examples:
+        apptainer run --app <TOOL_BINARY> <image.sif> --help
+        apptainer exec <image.sif> python --version
+
+# -----------------------------------------------------------------------------
+# %labels – Key-value metadata stored in the image.
+# -----------------------------------------------------------------------------
+%labels
+    author="Gilbert Kibet"
+    author_email="kibet.gilbert.r@gmail.com"
+    tool="Kleborate"
+    tool_version="v3.2.4"
+    base_image="mambaorg/micromamba:1.5.10-noble"
+    description="Apptainer container for kleborate"

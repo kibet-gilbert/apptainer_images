@@ -13,3 +13,86 @@ From: mambaorg/micromamba:1.5.10-noble
     ln -s $MAMBA_ROOT_PREFIX/bin/* /usr/local/bin/
 %environment
     export PATH="/usr/local/bin:$MAMBA_ROOT_PREFIX/bin:$PATH"
+%test
+    echo "=== Verifying tool availability ==="
+    # Verify binaries exist on PATH (exits non-zero if missing):
+    command -v python
+    # version
+    echo "=== Python version ==="
+    python --version
+
+    echo "=== All checks passed ==="
+
+%apprun extract_kraken_reads
+    exec extract_kraken_reads.py "$@"
+%apprun combine_kreports
+    exec combine_kreports.py "$@"
+%apprun kreport2krona
+    exec kreport2krona.py "$@"
+%apprun kreport2mpa
+    exec kreport2mpa.py "$@"
+%apprun combine_mpa
+    exec combine_mpa.py "$@"
+%apprun filter_bracken_out
+    exec filter_bracken_out.py "$@"
+%apprun fix_unmapped
+    exec fix_unmapped.py "$@"
+%apprun make_ktaxonomy
+    exec make_ktaxonomy.py "$@"
+%apprun make_kreport
+    exec make_kreport.py "$@"
+%apprun alpha_diversity
+    exec alpha_diversity "$@"	
+%apprun beta_diversity
+    exec beta_diversity "$@"
+
+# -----------------------------------------------------------------------------
+# %help – Displayed by `apptainer run-help <image.sif>`.
+# -----------------------------------------------------------------------------
+%help
+    Apptainer container for krakentools v1.2.1
+
+    Usage:
+        apptainer run --app <app_name> <image.sif> [arguments]
+
+    Available apps:
+        * extract_kraken_reads	- Extract reads classified at specific taxonomy IDs
+        * combine_kreports	- Combines multiple Kraken reports
+        * kreport2krona		- Converts Kraken report file to krona-compatible TEXT file
+        * kreport2mpa		- Converst Kraken report file to mpa (MetaPhlAn)
+        * combine_mpa		- Combines multiple outputs from kreport2mpa.py
+        * filter_bracken_out	- Filters Bracken report by the desired taxonomy IDs
+        * fix_unmapped		- Generate seqid2taxid.map from unmapped.txt when building a Kraken database
+        * make_ktaxonomy	- Generates a text file with all of the taxonomy information from Kraken 1, Kraken 2, or KrakenUniq database
+        * make_kreport		- Generate a kraken-style report file from the kraken output file
+        * alpha_diversity	- Calculates alpha diversity, from the Bracken abundance estimation file
+        * beta_diversity	- Calculates the beta diversity (Bray-Curtis dissimilarity) from kraken, krona and bracken files
+
+    Available tools (exec directly):
+        * python
+        * extract_kraken_reads.py
+        * combine_kreports.py
+        * kreport2krona.py
+        * kreport2mpa.py
+        * combine_mpa.py
+        * filter_bracken_out.py
+        * fix_unmapped.py
+        * make_ktaxonomy.py
+        * make_kreport.py
+        * alpha_diversity.py
+        * beta_diversity.py 
+
+    Examples:
+        apptainer run --app <TOOL_BINARY> <image.sif> --help
+        apptainer exec <image.sif> python --version
+
+# -----------------------------------------------------------------------------
+# %labels – Key-value metadata stored in the image.
+# -----------------------------------------------------------------------------
+%labels
+    author="Gilbert Kibet"
+    author_email="kibet.gilbert.r@gmail.com"
+    tool="krakentools"
+    tool_version="v1.2.1"
+    base_image="mambaorg/micromamba:1.5.10-noble"
+    description="Apptainer container for krakentools"

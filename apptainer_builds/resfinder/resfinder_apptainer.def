@@ -23,13 +23,28 @@ From: mambaorg/micromamba:1.5.10-noble
     kma -h
     blastn -help
 
+%apprun resfinder
+    exec python -m resfinder "$@"
+%apprun kma
+    exec kma "$@"
+%apprun blastn
+    exec blastn "$@"
+
 %help
-    Singularity container for treetime
+    Singularity container for resfinder
     Apps available:
-    * python -m resfinder
+    * resfinder
     * kma
     * blastn
 
+    Available tools (exec directly):
+        * python
+        * python -m resfinder
+
+    Examples:
+        apptainer run --app <TOOL_BINARY> <image.sif> --help
+        apptainer exec <image.sif> python --version
+
 %labels
     author="gilbert kibet"
-    author_email="gilykibe@gmail.com"
+    author_email="kibet.gilbert.r@gmail.com"
