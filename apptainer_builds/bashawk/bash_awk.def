@@ -2,22 +2,71 @@ Bootstrap: docker
 From: ubuntu:22.04
 
 %labels
-    Author Gilbert Kibet
-    Version 1.0
-    Description Convert gzipped FASTQ to FASTA using awk and gunzip
+    Author="Gilbert Kibet"
+    Version="1.0"
+    Description="Basic Linux file manipulation tools and commands: e.g Convert gzipped FASTQ to FASTA using awk and gunzip, CSVs, JSON, xml2, SQL..."
 
 %post
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        gzip \
-        gawk \
-        coreutils \
-        && apt-get clean && rm -rf /var/lib/apt/lists/*
+        ca-certificates gzip xz-utils vim xml2 perl jq \
+        gawk coreutils sqlite util-linux bsdextrautils \
+        miller wget curl
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+    # dasel xq qq nushell \
+    # dasel
+    wget -qO /usr/local/bin/dasel https://github.com/TomWright/dasel/releases/latest/download/dasel_linux_amd64
+    chmod +x /usr/local/bin/dasel
+    
+    # yq (includes xq)
+    wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+    chmod +x /usr/local/bin/yq
+
+    # qq ()
+    wget https://github.com/JFryy/qq/releases/download/v0.3.4/qq-v0.3.4-linux-amd64.tar.gz
+    tar -xzf qq-*.tar.gz && mv qq /usr/local/bin/
+    
+    # nushell
+    wget https://github.com/nushell/nushell/releases/download/0.112.2/nu-0.112.2-x86_64-unknown-linux-gnu.tar.gz
+    tar -xzf nu-*.tar.gz && mv nu-*/nu /usr/local/bin/
+
+%test
+    echo "=== Verifying tool availability ==="
+    # Verify binaries exist on PATH (exits non-zero if missing):
+    command -v perl
+    command -v gawk
+    command -v sqlite3
+    command -v jq
+    command -v qq
+    command -v dasel
+    command -v nu
+    command -v yq
+    command -v mlr
+    command -v column
+    column --help >/dev/null
 
 %help
-    This container converts FASTQ.gz files to FASTA format using AWK and gunzip.
+    This container has a list of tools that can do basic file manipulation like converts FASTQ.gz files to FASTA format using AWK and gunzip.
+    Additionally it has other tools like:
+      * vim
+      * xz
+      * dasel
+      * qq
+      * xml2
+      * xl
+      * nushell
+      * jq
+      * column
+      * sqlite
+      * mlr
+      * perl
+      * ...
     It is designed to be used with Nextflow or standalone via:
-        apptainer exec fastq_to_fasta.sif bash -c 'gunzip -c input.fastq.gz | awk ...'
+        apptainer exec <image.sif> [command] [arguments] ...
+        Example:
+        apptainer exec <image.sif> bash -c 'gunzip -c input.fastq.gz | awk ...'
 
 %runscript
     echo "This image is intended to be used as part of a pipeline."
