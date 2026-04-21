@@ -1,6 +1,6 @@
 # Apptainer Definition File: Anatomy & Reference
 
-> A plain-language guide to every section of [`package_apptainer.def`](./template-package_apptainer.def) — the template used for building bioinformatics Apptainer (Singularity) images with `micromamba`.
+A plain-language guide to every section of [`package_apptainer.def`](./template-package_apptainer.def) — the template used for building bioinformatics Apptainer (Singularity) images with `micromamba`.
 
 ---
 
@@ -30,6 +30,7 @@ Build time:   %files  →  %post
 Runtime:      %environment  →  %runscript / %apprun / %test
 Metadata:     %labels  %help
 ```
+> All the `%` sections can be elaborate and detailed but not all are a must for the container to be functional. The **Header** and maybe `%post` are the only two that are needed to create a functional container.
 
 ---
 

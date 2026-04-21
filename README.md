@@ -6,7 +6,9 @@
 
 A curated collection of **Apptainer (Singularity) container recipes** for bioinformatics tools focused on antimicrobial resistance (AMR) profiling, metagenomics, whole-genome sequencing (WGS) analysis, variant annotation, single-cell transcriptomics and sequence quality control.
 
-Built images are hosted on **Docker Hub** → [`kibetgilbert`](https://hub.docker.com/repositories/kibetgilbert) and can be pulled directly with Apptainer.
+Built images are hosted on **Docker Hub** → [`kibetgilbert`](https://hub.docker.com/repositories/kibetgilbert) and can be pulled directly with Apptainer.   
+
+Majority of bioinformatics tools have already been packaged into containers by {StaPH-B](https://staphb.org/) and can be pulled directly their [StaPH-B Docker Hub repository](https://hub.docker.com/u/staphb).
 
 ---
 
@@ -18,7 +20,8 @@ Built images are hosted on **Docker Hub** → [`kibetgilbert`](https://hub.docke
 │   ├── abricate/
 │   │   ├── abricate_apptainer.def   # Apptainer definition file
 │   │   ├── abricate_apptainer.sif   # Built image (not tracked by git)
-│   │   └── conda.yml                # Conda environment spec
+│   │   ├── conda.yml                # Conda environment spec
+│   │   └── README.md                # Description of the tool and it's usage
 │   ├── fastp/
 │   │   └── ...
 │   └── ...                          # (one folder per tool)
@@ -35,6 +38,7 @@ Built images are hosted on **Docker Hub** → [`kibetgilbert`](https://hub.docke
 ```
 
 > **`.sif` files are not tracked by git** — they are large binary files. Pull them from Docker Hub (see [Pulling Images](#pulling-images)) or build them locally from the `.def` files.
+> The files above may not all be present and may be under continuous update
 
 ---
 
