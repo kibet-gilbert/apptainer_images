@@ -1,0 +1,72 @@
+# =============================================================================
+# Apptainer Definition File Template
+# Tool:    snp-dists v0.8.2
+# Author:  Gilbert Kibet
+# Email:   kibet.gilbert.r@gmail.com
+# Date:    2026-04-21
+# =============================================================================
+
+BootStrap: docker
+From: mambaorg/micromamba:1.5.10-noble
+
+%files
+    conda.yml /scratch/conda.yml
+%post
+    micromamba install -y -n base -f /scratch/conda.yml
+    micromamba install -y -n base conda-forge::procps-ng
+    micromamba env export --name base --explicit > environment.lock
+    echo ">> CONDA_LOCK_START"
+    cat environment.lock
+    echo "<< CONDA_LOCK_END"
+    micromamba clean -a -y
+%environment
+    export PATH="$MAMBA_ROOT_PREFIX/bin:$PATH"
+
+%test
+    echo "=== Verifying tool availability ==="
+    # Verify binaries exist on PATH (exits non-zero if missing):
+    command -v snp-dists
+    # command -v Rscript
+    # command -v <TOOL_BINARY>
+
+    echo "=== All checks passed ==="
+
+# -----------------------------------------------------------------------------
+# %apprun <app_name> – Named app entry-points.
+#   Called with: apptainer run --app <app_name> <image.sif> [args]
+#   Define one block per exposed script / binary.
+# -----------------------------------------------------------------------------
+%apprun snp-dists
+    exec snp-dists "$@"
+
+# -----------------------------------------------------------------------------
+# %help – Displayed by `apptainer run-help <image.sif>`.
+# -----------------------------------------------------------------------------
+%help
+    Apptainer container for snp-dists v0.8.2
+
+    Usage:
+        apptainer run --app snp-dists <image.sif> [arguments]
+
+    Available apps:
+        * snp-dists         – Main entry-point
+
+    Available tools (exec directly):
+        * python
+        # * Rscript
+        # * <OTHER_BINARY>
+
+    Examples:
+        apptainer run --app snp-dists <image.sif> -h
+        apptainer exec <image.sif> snp-dists -h
+
+# -----------------------------------------------------------------------------
+# %labels – Key-value metadata stored in the image.
+# -----------------------------------------------------------------------------
+%labels
+    author="Gilbert Kibet"
+    author_email="kibet.gilbert.r@gmail.com"
+    tool="snp-dists"
+    tool_version="v0.8.2"
+    base_image="mambaorg/micromamba:1.5.10-noble"
+    description="Apptainer container for snp-dists"
