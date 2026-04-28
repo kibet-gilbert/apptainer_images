@@ -9,7 +9,7 @@ A curated collection of **Apptainer (Singularity) container recipes** for bioinf
 Built images are hosted on **Docker Hub** → [`kibetgilbert`](https://hub.docker.com/repositories/kibetgilbert) and can be pulled directly with Apptainer.   
 
 Majority of bioinformatics tools have already been packaged into containers by some organizations are can easily be accessed from their container registries. The ones I regularly use are:   
- 1. [StaPH-B](https://staphb.org/) docker-hub repository. Images can be pulled directly their [StaPH-B Docker Hub repository](https://hub.docker.com/u/staphb).
+ 1. [StaPH-B](https://staphb.org/) docker-hub registry. Images can be pulled directly their [StaPH-B Docker Hub registry](https://hub.docker.com/u/staphb).
  2. [https://depot.galaxyproject.org/singularity/](https://depot.galaxyproject.org/singularity/) : A public mirror of Singularity/Apptainer container images, primarily built from Bioconda packages operated by the [Galaxy Project](https://galaxyproject.org/).
  3. [quay.io](https://quay.io/) : A container registry service (similar to Docker Hub). For bioinformatics most Bioconda containers are first built and stored here under: [quay.io/biocontainers/](https://quay.io/organization/biocontainers)
 
